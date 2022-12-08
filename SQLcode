@@ -1,0 +1,69 @@
+Bellabeat Smart Device analysis 
+
+
+I first performed a few queries in Google BigQuery to check the consistency in the number of participants in each table for the 
+Fitbit Fitness Tracker dataset. After analyzing this dataset in a visualization, I will provide suggestions for the methods Bellabeat can use to 
+improve the marketing strategy of their smart devices. 
+
+SELECT distinct Id FROM `weight_info.Weight`
+--8 out of the 30 people in this dataset logged in their weight/BMI info
+
+SELECT distinct Id FROM `sleepday_info.sleep`
+--24 people submitted results for their sleep
+
+SELECT distinct Id FROM `calories_info.calories`
+--33 people submitted results for their calories
+
+SELECT distinct Id FROM `steps_info.steps`
+--33 people submitted results for their steps
+
+SELECT distinct Id FROM `daily_activities_info.activities`
+--33 people submitted results for their daily activities
+
+--After performing these queries, it is revealed that there are a maximum of 33 people that submitted their results for 
+some of the tables, but the description of the dataset states there are up to 30 people who were a part of this study. 
+This reveals an inconsistency in reporting the correct number of individuals who consented to the data being used for the study. 
+Also, the lack of participants in the Sleep and Weight tables will make the data biased due to the small sample size. 
+
+--Let’s look at the relationship of activity, sleep time, and weight/BMI
+
+--Relationship between weight_log_info and daily calories tables. 
+I did an inner join function in SQL to compare the BMI of each person to the calories burned on the activity date. 
+The tables were joined on the participant's Id number. 
+
+Select distinct w.Id, BMI, c.Calories, c.ActivityDay
+from `weight_info.Weight` as w
+inner join `calories_info.calories` as c 
+on w.Id = c.Id
+
+--Relationship between the calories burned and total steps on an activity day. There are two joins 
+in this query for the Id number of the participants and their Activity date. 
+Select c.Calories, ds.Step_Total, c.ActivityDay
+from `calories_info.calories` as c
+join `steps_info.steps` as ds
+on c.Id = ds.Id
+and c.ActivityDay = ds.Activity_Day
+
+--Now, let’s look at how the Activity Level compares to the BMI, Sleep Time, and Daily Calorie Intake of the individuals in this study. 
+
+--Activity vs BMI 
+Select weight.Id, ActivityDate, VeryActiveMinutes,TotalDistance,SedentaryMinutes, BMI, TotalSteps from `daily_activities_info.activities` as activity
+inner join `weight_info.Weight` as weight
+on activity.Id = weight.Id
+and activity.activitydate = weight.Date
+ 
+--Activity vs Sleep Time 
+Select ActivityDate,VeryActiveMinutes,TotalDistance,SedentaryMinutes,TotalSteps, SleepDay, TotalMinutesAsleep
+from `daily_activities_info.activities` as activity
+inner join `sleepday_info.sleep`as sleep
+on activity.Id = sleep.Id
+and activity.ActivityDate = sleep.SleepDay
+
+--Activity vs Daily Calorie Intake 
+Select activity.Id,ActivityDate,VeryActiveMinutes,TotalDistance,SedentaryMinutes,TotalSteps,Calories
+from `daily_activities_info.activities` as activity
+inner join `calories_info.calories` as calories
+on activity.Id = calories.Id
+and activity.ActivityDate = calories.ActivityDay
+ 
+
